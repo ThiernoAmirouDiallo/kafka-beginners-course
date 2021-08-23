@@ -28,11 +28,11 @@ public class ProducerWithKeys {
         //producer
         KafkaProducer<String, String> producer = new KafkaProducer<>(properties);
 
-        for (int i = 0; i < 10; i++) {
+        for (int i = 0; i < 1000; i++) {
 
             //producer record
             String topic = "first-topic";
-            String key = String.format("id-%s", i % 5);
+            String key = String.format("id-%s", i % 100);
             String value = String.format("hello word %s", i);
 
             ProducerRecord<String, String> record = new ProducerRecord<>(topic, key, value);
