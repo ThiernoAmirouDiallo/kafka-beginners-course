@@ -24,8 +24,8 @@ import java.util.concurrent.TimeUnit;
 
 import static org.apache.kafka.clients.producer.ProducerConfig.*;
 
-public class TwitterProducer {
-    static Logger logger = LoggerFactory.getLogger(TwitterProducer.class);
+public class TwitterIdempotentProducer {
+    static Logger logger = LoggerFactory.getLogger(TwitterIdempotentProducer.class);
 
     public static final String TWITTER_CONSUMER_KEY = System.getenv("TWITTER_CONSUMER_KEY");
     public static final String TWITTER_CONSUMER_SECRET = System.getenv("TWITTER_CONSUMER_SECRET");
@@ -40,11 +40,11 @@ public class TwitterProducer {
     BlockingQueue<String> msgQueue = new LinkedBlockingQueue<>(100000);
     //BlockingQueue<Event> eventQueue = new LinkedBlockingQueue<Event>(1000);
 
-    public TwitterProducer() {
+    public TwitterIdempotentProducer() {
     }
 
     public static void main(String[] args) {
-        new TwitterProducer().run();
+        new TwitterIdempotentProducer().run();
     }
 
     public void run() {
@@ -96,6 +96,12 @@ public class TwitterProducer {
         properties.setProperty(BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
         properties.setProperty(KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
         properties.setProperty(VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
+
+        //safe producer
+        properties.setProperty(ENABLE_IDEMPOTENCE_CONFIG, "true");
+        properties.setProperty(ACKS_CONFIG, "all");
+        properties.setProperty(RETRIES_CONFIG, Integer.toString(Integer.MAX_VALUE));
+        properties.setProperty(MAX_IN_FLIGHT_REQUESTS_PER_CONNECTION, "5");
 
         //producer
         KafkaProducer<String, String> stringStringKafkaProducer = new KafkaProducer<>(properties);
