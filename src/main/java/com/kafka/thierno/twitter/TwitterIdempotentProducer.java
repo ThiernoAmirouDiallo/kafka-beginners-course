@@ -102,6 +102,12 @@ public class TwitterIdempotentProducer {
         properties.setProperty(ACKS_CONFIG, "all");
         properties.setProperty(RETRIES_CONFIG, Integer.toString(Integer.MAX_VALUE));
         properties.setProperty(MAX_IN_FLIGHT_REQUESTS_PER_CONNECTION, "5");
+        properties.setProperty(DELIVERY_TIMEOUT_MS_CONFIG, "40000");
+
+        //high throughput producer settings at the expense of CPU and latency
+        properties.setProperty(COMPRESSION_TYPE_CONFIG, "snappy");
+        properties.setProperty(LINGER_MS_CONFIG, "20");
+        properties.setProperty(BATCH_SIZE_CONFIG, Integer.toString(32 * 1024)); // 32 KB
 
         //producer
         KafkaProducer<String, String> stringStringKafkaProducer = new KafkaProducer<>(properties);
@@ -116,7 +122,7 @@ public class TwitterIdempotentProducer {
         // Optional: set up some followings and track terms
         // List<Long> followings = Lists.newArrayList(1234L, 566788L);
         // hosebirdEndpoint.followings(followings);
-        List<String> terms = Lists.newArrayList("java", "microservices", "expressentry", "bitcoin");
+        List<String> terms = Lists.newArrayList("java", "microservices", "expressentry", "bitcoin", "guinee");
         hosebirdEndpoint.trackTerms(terms);
 
         // These secrets should be read from a config file
