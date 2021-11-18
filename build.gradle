@@ -19,6 +19,7 @@ dependencies {
     // https://mvnrepository.com/artifact/org.slf4j/slf4j-simple
     implementation 'org.slf4j:slf4j-simple:1.7.32'
     implementation "com.twitter:hbc-core:2.2.0"
+    implementation "org.elasticsearch.client:elasticsearch-rest-high-level-client:7.10.2"
 }
 
 test {
