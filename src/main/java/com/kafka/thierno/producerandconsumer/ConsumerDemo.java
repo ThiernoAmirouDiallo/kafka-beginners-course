@@ -13,7 +13,6 @@ import java.util.Properties;
 
 import static org.apache.kafka.clients.consumer.ConsumerConfig.*;
 
-
 public class ConsumerDemo {
     static Logger logger = LoggerFactory.getLogger(ConsumerDemo.class);
 
