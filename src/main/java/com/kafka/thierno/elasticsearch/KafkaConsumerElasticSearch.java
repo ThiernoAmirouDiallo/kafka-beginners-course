@@ -2,8 +2,10 @@ package com.kafka.thierno.elasticsearch;
 
 import static org.apache.kafka.clients.consumer.ConsumerConfig.AUTO_OFFSET_RESET_CONFIG;
 import static org.apache.kafka.clients.consumer.ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG;
+import static org.apache.kafka.clients.consumer.ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG;
 import static org.apache.kafka.clients.consumer.ConsumerConfig.GROUP_ID_CONFIG;
 import static org.apache.kafka.clients.consumer.ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG;
+import static org.apache.kafka.clients.consumer.ConsumerConfig.MAX_POLL_RECORDS_CONFIG;
 import static org.apache.kafka.clients.consumer.ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG;
 
 import com.google.gson.JsonParser;
@@ -63,6 +65,8 @@ public class KafkaConsumerElasticSearch {
 		properties.setProperty(VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
 		properties.setProperty(GROUP_ID_CONFIG, groupId);
 		properties.setProperty(AUTO_OFFSET_RESET_CONFIG, "earliest");
+		properties.setProperty(ENABLE_AUTO_COMMIT_CONFIG, "false"); //disable auto commit of offsets
+		properties.setProperty(MAX_POLL_RECORDS_CONFIG, "20");
 
 		//consumer
 		KafkaConsumer<String, String> consumer = new KafkaConsumer<>(properties);
@@ -84,6 +88,7 @@ public class KafkaConsumerElasticSearch {
 		while (true) {
 			ConsumerRecords<String, String> records = consumer.poll( Duration.ofMillis(200));
 
+			logger.info( "Received {} kafka records", records.count() );
 			for ( ConsumerRecord<String, String> record : records) {
 				logger.info("Pushing to elasticsearch:\n\tKey --> {} \n\tValue: {}\ttopic: {}\toffset: {}\n\tpartition: {}\n\ttimestamp: {}", record.key(), record.value(), record.topic(), record.offset(), record.partition(), record.timestamp());
 
@@ -99,6 +104,12 @@ public class KafkaConsumerElasticSearch {
 
 				Thread.sleep( 1000 ); // adding a small delay
 			}
+
+			logger.info( "Commiting offsets" );
+			consumer.commitSync();
+			logger.info( "Offsets have been committed" );
+
+			Thread.sleep( 1000 ); // adding a small delay
 		}
 	}
 
