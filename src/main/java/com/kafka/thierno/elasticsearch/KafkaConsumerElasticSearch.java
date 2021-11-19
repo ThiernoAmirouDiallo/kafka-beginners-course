@@ -6,10 +6,13 @@ import static org.apache.kafka.clients.consumer.ConsumerConfig.GROUP_ID_CONFIG;
 import static org.apache.kafka.clients.consumer.ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG;
 import static org.apache.kafka.clients.consumer.ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG;
 
+import com.google.gson.JsonParser;
+
 import java.io.IOException;
 import java.time.Duration;
 import java.util.Collections;
 import java.util.Properties;
+import java.util.UUID;
 
 import org.apache.http.HttpHost;
 import org.apache.http.auth.AuthScope;
@@ -73,7 +76,7 @@ public class KafkaConsumerElasticSearch {
 	public static void main( String[] args ) throws InterruptedException {
 
 		//sample request
-		pushElasticSearch("{ \"foo\": \"bar\"}", XContentType.JSON);
+		pushElasticSearch( UUID.randomUUID().toString(), "{ \"foo\": \"bar\"}", XContentType.JSON);
 
 		KafkaConsumer<String, String> consumer = createConsumer( "twitter-tweets" );
 
@@ -83,15 +86,31 @@ public class KafkaConsumerElasticSearch {
 
 			for ( ConsumerRecord<String, String> record : records) {
 				logger.info("Pushing to elasticsearch:\n\tKey --> {} \n\tValue: {}\ttopic: {}\toffset: {}\n\tpartition: {}\n\ttimestamp: {}", record.key(), record.value(), record.topic(), record.offset(), record.partition(), record.timestamp());
-				pushElasticSearch(record.value(), XContentType.JSON);
+
+				/*
+				 2 strategies for id,
+				 kafka specific id
+				 String id = record.topic() + record.partition() + record.offset()
+				 source id -> twitter feed id
+				 */
+				String id = extractTweetId( record.value() );
+
+				pushElasticSearch( id, record.value(), XContentType.JSON );
 
 				Thread.sleep( 1000 ); // adding a small delay
 			}
 		}
 	}
 
-	private static void pushElasticSearch(String source, XContentType contentType) {
-		IndexRequest indexRequest = new IndexRequest( "twitter" ).type( "tweets" ).source( source, contentType);
+	private static String extractTweetId( String jsonTweet ) {
+		return JsonParser.parseString( jsonTweet ).getAsJsonObject().get( "id_str" ).getAsString();
+	}
+
+	private static void pushElasticSearch(String id, String source, XContentType contentType) {
+		IndexRequest indexRequest = new IndexRequest( "twitter" ) //
+				.type( "tweets" ) //
+				.id(id) // to make to kafka consumer idenpotent because by default the the develivery-semantic is at-least-one meaning the same kafka record can be read twice
+				.source( source, contentType);
 
 		try ( RestHighLevelClient client = restHighLevelClient() ) {
 			IndexResponse indexResponse = client.index( indexRequest, RequestOptions.DEFAULT );

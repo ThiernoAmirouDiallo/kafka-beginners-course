@@ -20,6 +20,7 @@ dependencies {
     implementation 'org.slf4j:slf4j-simple:1.7.32'
     implementation "com.twitter:hbc-core:2.2.0"
     implementation "org.elasticsearch.client:elasticsearch-rest-high-level-client:7.10.2"
+    implementation "com.google.code.gson:gson:2.8.9"
 }
 
 test {
