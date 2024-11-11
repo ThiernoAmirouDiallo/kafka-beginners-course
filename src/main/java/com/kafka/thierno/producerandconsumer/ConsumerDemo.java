@@ -29,6 +29,7 @@ public class ConsumerDemo {
         properties.setProperty(VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
         properties.setProperty(GROUP_ID_CONFIG, groupId);
         properties.setProperty(AUTO_OFFSET_RESET_CONFIG, "earliest");
+		properties.setProperty(MAX_POLL_RECORDS_CONFIG, "10");
 
         //consumer
         KafkaConsumer<String, String> consumer = new KafkaConsumer<>(properties);
@@ -40,6 +41,8 @@ public class ConsumerDemo {
         while (true) {
             ConsumerRecords<String, String> records = consumer.poll(Duration.ofMillis(200));
 
+			// consumer.pause(consumer.assignment());
+			// consumer.resume(consumer.assignment());
             for (ConsumerRecord<String, String> record : records) {
                 logger.info("Key --> {} \n\tValue: {}\n\ttopic: {}\n\toffset: {}\n\tpartition: {}\n\ttimestamp: {}", record.key(), record.value(), record.topic(), record.offset(), record.partition(), record.timestamp());
             }
